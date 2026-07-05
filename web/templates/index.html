@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CarvX Web - Signature-based File Carver</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <style>
+        :root {
+            --md-primary-fg-color: #000000;
+            --md-primary-fg-color--light: #333333;
+            --md-primary-fg-color--dark: #000000;
+            --md-accent-fg-color: #000000;
+            --md-accent-fg-color--transparent: #0000001a;
+            --md-default-bg-color: #ffffff;
+            --md-default-fg-color: #000000;
+            --md-default-fg-color--light: #666666;
+            --md-default-fg-color--lighter: #999999;
+            --md-default-fg-color--lightest: #dddddd;
+            --md-shadow-z1: 0 0.2rem 0.5rem rgba(0,0,0,.1), 0 0 0.05rem rgba(0,0,0,.1);
+            --md-shadow-z2: 0 0.2rem 0.5rem rgba(0,0,0,.2), 0 0 0.05rem rgba(0,0,0,.25);
+            --md-shadow-z3: 0 0.2rem 0.5rem rgba(0,0,0,.3), 0 0 0.05rem rgba(0,0,0,.35);
+        }
+
+        [data-md-color-scheme="slate"] {
+            --md-primary-fg-color: #ffffff;
+            --md-primary-fg-color--light: #cccccc;
+            --md-primary-fg-color--dark: #000000;
+            --md-accent-fg-color: #ffffff;
+            --md-default-bg-color: #1e1e1e;
+            --md-default-fg-color: #ffffff;
+            --md-default-fg-color--light: #aaaaaa;
+            --md-default-fg-color--lighter: #888888;
+            --md-default-fg-color--lightest: #444444;
+        }
+
+        body {
+            background: var(--md-default-bg-color);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--md-default-fg-color);
+            background: var(--md-default-bg-color);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        .md-header {
+            background: var(--md-primary-fg-color);
+            color: white;
+            padding: 0 1rem;
+            height: 2.4rem;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--md-shadow-z1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .md-header__inner {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .md-header__title {
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+        }
+
+        .md-header__nav {
+            margin-left: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .md-header__nav a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            transition: opacity 0.2s;
+        }
+
+        .md-header__nav a:hover {
+            opacity: 1;
+        }
+
+        .md-header__controls {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .md-icon-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .md-icon-button:hover {
+            opacity: 1;
+        }
+
+        /* Container */
+        .md-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 2rem;
+        }
+
+        .md-sidebar {
+            position: sticky;
+            top: 2rem;
+            height: calc(100vh - 5rem);
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .md-sidebar__scrollwrap {
+            padding: 1rem 0;
+        }
+
+        .md-sidebar__section {
+            margin-bottom: 1.5rem;
+        }
+
+        .md-sidebar__heading {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--md-default-fg-color--light);
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .md-sidebar__link {
+            display: block;
+            padding: 0.4rem 0.5rem;
+            color: var(--md-default-fg-color);
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .md-sidebar__link:hover {
+            background: var(--md-default-fg-color--lightest);
+        }
+
+        .md-sidebar__link.active {
+            background: var(--md-primary-fg-color--light);
+            color: white;
+        }
+
+        /* Main */
+        .md-main {
+            min-width: 0;
+        }
+
+        .md-content {
+            background: var(--md-default-bg-color);
+            border-radius: 4px;
+            box-shadow: var(--md-shadow-z1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .md-content h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            color: var(--md-default-fg-color);
+        }
+
+        .md-content h2 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 0.05rem solid var(--md-default-fg-color--lightest);
+        }
+
+        .md-content h3 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin: 1.25rem 0 0.75rem;
+        }
+
+        .md-content p {
+            margin-bottom: 1rem;
+        }
+
+        /* Cards */
+        .md-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .md-card {
+            background: var(--md-default-bg-color);
+            border: 0.05rem solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            padding: 1.25rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .md-card:hover {
+            box-shadow: var(--md-shadow-z2);
+        }
+
+        .md-card__icon {
+            font-size: 2rem;
+            color: var(--md-primary-fg-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .md-card__title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .md-card__text {
+            font-size: 0.85rem;
+            color: var(--md-default-fg-color--light);
+            margin-bottom: 0.75rem;
+        }
+
+        .md-card__link {
+            color: var(--md-primary-fg-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Forms */
+        .md-form {
+            margin-bottom: 1rem;
+        }
+
+        .md-form label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--md-default-fg-color--light);
+            margin-bottom: 0.5rem;
+        }
+
+        .md-form input[type="text"],
+        .md-form input[type="number"],
+        .md-form input[type="password"],
+        .md-form select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 0.05rem solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: var(--md-default-bg-color);
+            color: var(--md-default-fg-color);
+            transition: border-color 0.2s;
+        }
+
+        .md-form input:focus,
+        .md-form select:focus {
+            outline: none;
+            border-color: var(--md-primary-fg-color);
+        }
+
+        .md-form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+        }
+
+        .md-form-checkbox input {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .md-form-checkbox label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .md-button {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .md-button--primary {
+            background: var(--md-primary-fg-color);
+            color: white;
+        }
+
+        .md-button--primary:hover {
+            background: var(--md-primary-fg-color--dark);
+        }
+
+        .md-button--secondary {
+            background: var(--md-default-fg-color--lightest);
+            color: var(--md-default-fg-color);
+        }
+
+        .md-button--secondary:hover {
+            background: var(--md-default-fg-color--lighter);
+        }
+
+        .md-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Dropzone */
+        .md-dropzone {
+            border: 0.1rem dashed var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .md-dropzone:hover,
+        .md-dropzone.dragover {
+            border-color: var(--md-primary-fg-color);
+            background: var(--md-primary-fg-color--light);
+        }
+
+        .md-dropzone__icon {
+            font-size: 3rem;
+            color: var(--md-primary-fg-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .md-dropzone__text {
+            color: var(--md-default-fg-color--light);
+        }
+
+        /* Checkbox grid */
+        .md-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 0.05rem solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+        }
+
+        /* Mode buttons */
+        .md-mode-select {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .md-mode-btn {
+            padding: 0.5rem 1rem;
+            border: 0.05rem solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            background: var(--md-default-bg-color);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .md-mode-btn:hover {
+            border-color: var(--md-primary-fg-color);
+        }
+
+        .md-mode-btn.active {
+            background: var(--md-primary-fg-color);
+            color: white;
+            border-color: var(--md-primary-fg-color);
+        }
+
+        /* Admonitions */
+        .md-admonition {
+            padding: 1rem 1.2rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border-left: 0.2rem solid;
+        }
+
+        .md-admonition--tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .md-admonition--info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .md-admonition--warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .md-admonition__title {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Progress */
+        .md-progress {
+            height: 0.25rem;
+            background: var(--md-default-fg-color--lightest);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .md-progress__fill {
+            height: 100%;
+            background: var(--md-primary-fg-color);
+            transition: width 0.3s;
+        }
+
+        /* Output */
+        .md-output {
+            background: #f5f5f5;
+            border: 0.05rem solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+        }
+
+        /* Tabs */
+        .md-tabs {
+            display: flex;
+            border-bottom: 0.05rem solid var(--md-default-fg-color--lightest);
+            margin-bottom: 1rem;
+        }
+
+        .md-tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 0.125rem solid transparent;
+            margin-bottom: -0.05rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: var(--md-default-fg-color--light);
+        }
+
+        .md-tab:hover {
+            color: var(--md-primary-fg-color);
+        }
+
+        .md-tab.active {
+            color: var(--md-primary-fg-color);
+            border-bottom-color: var(--md-primary-fg-color);
+        }
+
+        .md-tab-content {
+            display: none;
+        }
+
+        .md-tab-content.active {
+            display: block;
+        }
+
+        /* Status */
+        .md-status {
+            padding: 1rem 1.2rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .md-status--running {
+            background: #e3f2fd;
+            border-left: 0.2rem solid #2196f3;
+        }
+
+        .md-status--completed {
+            background: #e8f5e9;
+            border-left: 0.2rem solid #4caf50;
+        }
+
+        .md-status--failed {
+            background: #ffebee;
+            border-left: 0.2rem solid #f44336;
+        }
+
+        /* Table */
+        .md-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+        }
+
+        .md-table th,
+        .md-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 0.05rem solid var(--md-default-fg-color--lightest);
+        }
+
+        .md-table th {
+            background: var(--md-default-fg-color--lightest);
+            font-weight: 500;
+            color: var(--md-default-fg-color--light);
+        }
+
+        .md-table tr:hover {
+            background: var(--md-default-fg-color--lightest);
+        }
+
+        /* Badge */
+        .md-badge {
+            display: inline-block;
+            padding: 0.2em 0.6em;
+            border-radius: 3px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .md-badge--high { background: #e3f2fd; color: #1565c0; }
+        .md-badge--low { background: #fff3e0; color: #ef6c00; }
+        .md-badge--verified { background: #e8f5e9; color: #2e7d32; }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 0.5rem;
+            height: 0.5rem;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--md-default-fg-color--lightest);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--md-default-fg-color--lighter);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--md-default-fg-color--light);
+        }
+    </style>
+</head>
+<body>
+    <div class="md-container">
+        <aside class="md-sidebar">
+            <div class="md-sidebar__scrollwrap">
+                <div class="md-sidebar__section">
+                    <div class="md-sidebar__heading">Steps</div>
+                    <a href="#step1" class="md-sidebar__link active">1. Input Source</a>
+                    <a href="#step2" class="md-sidebar__link">2. Carving Mode</a>
+                    <a href="#step3" class="md-sidebar__link">3. File Types</a>
+                    <a href="#step4" class="md-sidebar__link">4. Advanced Options</a>
+                    <a href="#step5" class="md-sidebar__link">5. BitLocker</a>
+                    <a href="#step6" class="md-sidebar__link">6. Run</a>
+                </div>
+                <div class="md-sidebar__section">
+                    <div class="md-sidebar__heading">Resources</div>
+                    <a href="https://github.com/carvx/carvx" class="md-sidebar__link">GitHub</a>
+                    <a href="#" class="md-sidebar__link">Documentation</a>
+                    <a href="#" class="md-sidebar__link">API Reference</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="md-main">
+            <div class="md-content">
+                <h1>CarvX Web Wrap</h1>
+                <p>Signature-based file carver for disk images and block devices. Upload a disk image, configure options, and recover deleted files.</p>
+
+                <div class="md-admonition md-admonition--tip">
+                    <div class="md-admonition__title">Quick Start</div>
+                    <p>Upload a disk image (dd, img, iso, e01, etc.), select file types to recover, and click Run. Carved files will be available for download when complete.</p>
+                </div>
+
+                <hr style="border: none; border-top: 0.05rem solid var(--md-default-fg-color--lightest); margin: 1.5rem 0;">
+
+                <h2 id="step1">1. Input Source</h2>
+                <div class="md-tabs">
+                    <div class="md-tab active" data-tab="upload">Upload File</div>
+                    <div class="md-tab" data-tab="path">Existing Path</div>
+                </div>
+
+                <div class="md-tab-content active" id="upload-tab">
+                    <div class="md-dropzone" id="dropzone">
+                        <div class="md-dropzone__icon"><span class="mdi mdi-folder-upload"></span></div>
+                        <p class="md-dropzone__text">Drag and drop your disk image here</p>
+                        <p class="md-dropzone__text">or click to browse</p>
+                        <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">
+                            Supported: dd, img, iso, e01, raw, bin, aff, vmdk, qcow2, vdi
+                        </p>
+                    </div>
+                    <input type="file" id="file-input" multiple accept=".dd,.img,.iso,.e01,.raw,.bin,.aff,.vmdk,.qcow2,.vdi" style="display: none;">
+                    <div id="file-info" class="md-status hidden" style="margin-top: 1rem;"></div>
+                </div>
+
+                <div class="md-tab-content" id="path-tab">
+                    <div class="md-form">
+                        <label for="file-path">Path to disk image</label>
+                        <input type="text" id="file-path" placeholder="/path/to/image.dd">
+                    </div>
+                    <button class="md-button md-button--secondary" id="load-path-btn">Load Path</button>
+                    <div id="path-info" class="md-status hidden" style="margin-top: 1rem;"></div>
+                </div>
+
+                <h2 id="step2">2. Carving Mode</h2>
+                <div class="md-mode-select">
+                    <button class="md-mode-btn active" data-mode="carve">Signature Carve</button>
+                    <button class="md-mode-btn" data-mode="ntfs">NTFS</button>
+                    <button class="md-mode-btn" data-mode="ext4">ext4</button>
+                    <button class="md-mode-btn" data-mode="fat">FAT</button>
+                    <button class="md-mode-btn" data-mode="hfs">HFS+</button>
+                    <button class="md-mode-btn" data-mode="apfs">APFS</button>
+                    <button class="md-mode-btn" data-mode="auto">Auto</button>
+                </div>
+                
+                <div class="md-admonition md-admonition--info" id="mode-description">
+                    <div class="md-admonition__title">Signature Carve (Selected)</div>
+                    <p><strong>What it does:</strong> Scans raw bytes for file signatures (magic bytes) without relying on filesystem metadata. Completely filesystem-agnostic — works on raw images, corrupted filesystems, unallocated space, and unknown filesystem types.</p>
+                    <p><strong>Recovers:</strong> Contiguous files only, based on header/footer signatures. No original filenames or paths — files are named by offset (e.g., <code>jpg/f_0x1a2b3c.jpg</code>).</p>
+                    <p><strong>Limitations:</strong> Fragmented files yield only the first fragment. No filesystem metadata means no timestamps, no filenames, no directory structure. File boundaries are estimated from signatures and size heuristics.</p>
+                    <p><strong>Best for:</strong> Heavily damaged filesystems, formatted drives, unallocated space carving, unknown filesystem types, or when filesystem metadata is unavailable.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--warning hidden" id="mode-ntfs">
+                    <div class="md-admonition__title">NTFS Undelete Mode</div>
+                    <p><strong>What it does:</strong> Parses the NTFS Master File Table (MFT) to recover deleted file records. Reads file extents (data runs) directly from MFT entries and reconstructs files from their actual disk clusters.</p>
+                    <p><strong>Recovers:</strong> Original filenames, full directory paths, MACB timestamps (Modified, Accessed, Changed, Born), file attributes, and fragmented files (via MFT runlists). Files land in <code>ntfs/&lt;recovered_path&gt;</code> with original names.</p>
+                    <p><strong>Limitations:</strong> Requires intact MFT. Overwritten MFT entries or zeroed $MFT file = no recovery. Compressed/encrypted (EFS) streams not recovered in raw format. Best-effort on partially corrupted MFT.</p>
+                    <p><strong>Best for:</strong> NTFS volumes with deleted files where MFT survives. Recovers names + paths + timestamps, not just raw data. Use with BitLocker unlock if volume is encrypted.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--tip hidden" id="mode-ext4">
+                    <div class="md-admonition__title">ext2/3/4 Undelete Mode</div>
+                    <p><strong>What it does:</strong> Walks ext filesystem inodes and directory entries. Reads deleted inodes (marked free but not zeroed) and recovers filenames from directory entry slack space.</p>
+                    <p><strong>Recovers:</strong> Filenames from dirent slack, inode metadata, timestamps (mtime, ctime, atime), file permissions, and fragmented files (via extent trees or indirect blocks). Files recovered with original names where dirent slack survives.</p>
+                    <p><strong>Limitations:</strong> ext4 aggressively zeros deleted inodes and dirents — older deletions may have no name recovery. Fragmented files require intact extent trees. Journaling may have overwritten deleted metadata.</p>
+                    <p><strong>Best for:</strong> Recent deletions on ext filesystems where inodes/dirents not yet zeroed. Name recovery is hit-or-miss on ext4; ext2/ext3 fare better.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info hidden" id="mode-fat">
+                    <div class="md-admonition__title">FAT12/16/32 + exFAT Undelete Mode</div>
+                    <p><strong>What it does:</strong> Scans FAT directory entries for deleted markers (0xE5). Reconstructs long filenames from VFAT LFN entries (or exFAT directory entries) and follows FAT cluster chains for file data.</p>
+                    <p><strong>Recovers:</strong> Original filenames (via VFAT LFN entries or exFAT name entries), timestamps (created, modified, accessed), file attributes, and first contiguous run of clusters. Files recovered with original names where LFN entries survive.</p>
+                    <p><strong>Limitations:</strong> Only recovers first contiguous fragment — fragmented FAT files are truncated at first gap. LFN entries often zeroed on deletion; may fall back to 8.3 short names. exFAT recovery similar but with different entry structures.</p>
+                    <p><strong>Best for:</strong> SD cards, USB drives, camera cards, embedded devices using FAT/exFAT. Quick recovery of recently deleted files with names intact.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--tip hidden" id="mode-hfs">
+                    <div class="md-admonition__title">HFS+/HFSX Undelete Mode</div>
+                    <p><strong>What it does:</strong> Walks the HFS+ catalog B-tree to find live and deleted file records. Parses fork data extents for file content and recovers metadata from catalog records.</p>
+                    <p><strong>Recovers:</strong> Original filenames, full POSIX paths, timestamps (created, modified, backed up, accessed), file/folder permissions, resource forks, and fragmented files (via extent records). Files recovered with names from catalog records.</p>
+                    <p><strong>Limitations:</strong> Clean unmounts journal away deleted catalog records — name recovery often impossible on cleanly unmounted volumes. File data still recoverable via carving mode. Catalog B-tree corruption blocks name recovery.</p>
+                    <p><strong>Best for:</strong> macOS volumes with deleted files where catalog records survive (unclean unmount, journal corruption). Data always recoverable; names only if catalog record persists.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info hidden" id="mode-apfs">
+                    <div class="md-admonition__title">APFS Recovery Mode</div>
+                    <p><strong>What it does:</strong> Scans APFS copy-on-write structures — file extents, directory records, and snapshot metadata. Recovers deleted files from superseded node copies that persist in unallocated space.</p>
+                    <p><strong>Recovers:</strong> Original filenames, full paths, precise timestamps (created, modified, changed, backed up, accessed), file clones, snapshots, and fragmented files (via extent lists). Exact file content via COW — no fragmentation issues.</p>
+                    <p><strong>Limitations:</strong> APFS TRIM can zero deleted blocks quickly on SSDs. Encryption (FileVault) requires unlocked volume. Snapshot-based recovery depends on snapshot age and retention.</p>
+                    <p><strong>Best for:</strong> Modern macOS volumes (10.13+). Best-in-class deleted file recovery due to COW nature — old node copies often survive long after deletion. Recovers exact file content with names and metadata.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--warning hidden" id="mode-auto">
+                    <div class="md-admonition__title">Auto-Detect + Undelete Mode</div>
+                    <p><strong>What it does:</strong> Automatically parses MBR/GPT/APM partition tables, detects filesystem type for each partition (via magic bytes and superblock parsing), and dispatches the appropriate undelete mode (or carving fallback) to each.</p>
+                    <p><strong>Recovers:</strong> Everything the individual modes recover — filenames, paths, timestamps, fragments — across all partitions in a single run. Each partition's output lands in <code>part&lt;N&gt;_&lt;fs&gt;/</code> subdirectories.</p>
+                    <p><strong>Workflow:</strong> 1) Parse partition table (MBR/GPT/APM). 2) Probe each partition for filesystem magic/superblock. 3) Run matching undelete mode (NTFS→MFT, ext4→inodes, FAT→dirents, etc.). 4) Fall back to signature carving for unrecognized filesystems.</p>
+                    <p><strong>Best for:</strong> Whole-disk images, multi-boot systems, unknown partition layouts, or when you want "everything recovered" without manual mode selection. Single command recovers all partitions.</p>
+                </div>
+
+                <h2 id="step3">3. File Types</h2>
+                <div class="md-form">
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="select-all-types" checked>
+                        <label for="select-all-types">Select All</label>
+                    </div>
+                    <div class="md-checkbox-grid" id="types-container">
+                        {% for type in types %}
+                        <div class="md-form-checkbox">
+                            <input type="checkbox" name="type" id="type-{{ type.name }}" value="{{ type.name }}" checked>
+                            <label for="type-{{ type.name }}">{{ type.name }}{% if type.description %} - {{ type.description }}{% endif %}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <h2 id="step4">4. Advanced Options</h2>
+                
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Offset</div>
+                    <p>Start position in the source image/device. Use suffixes: <code>100K</code> (kilobytes), <code>50M</code> (megabytes), <code>2G</code> (gigabytes). Default: <code>0</code> (start from beginning).</p>
+                    <p><strong>Use case:</strong> Skip known boot sectors, target specific partition regions, or carve only a suspicious area.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Length</div>
+                    <p>Number of bytes to scan from offset. Use suffixes: <code>100K</code>, <code>500M</code>, <code>1G</code>. Default: <code>0</code> (scan to end of source).</p>
+                    <p><strong>Use case:</strong> Limit scan to partition boundaries, specific clusters, or regions of interest identified by prior analysis.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Alignment</div>
+                    <p>Only accept file headers at N-byte aligned offsets. Common values: <code>1</code> (any offset), <code>512</code> (sector-aligned), <code>4096</code> (cluster-aligned on modern filesystems).</p>
+                    <p><strong>Effect:</strong> Faster scans with fewer false positives on known filesystem images. Misses embedded files or files on non-aligned boundaries. Use <code>1</code> for raw/carving mode, higher values for filesystem-structured images.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Parallel Jobs</div>
+                    <p>Number of concurrent scan processes. <code>0</code> = auto-detect (use all CPU cores). Default: <code>1</code>.</p>
+                    <p><strong>Trade-off:</strong> More jobs = faster scan on multi-core systems, but higher memory usage. Use <code>0</code> or core count for large images. Single job for small images or memory-constrained systems.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--tip" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Deep Validate Carves</div>
+                    <p>After carving, attempt full decode of each file: JPEG/PNG structure validation, ZIP central directory check, SQLite header + page integrity, gzip stream decode, etc.</p>
+                    <p><strong>Sets confidence:</strong> <code>verified</code> (decode succeeded), <code>failed</code> (decode failed), or <code>high</code> (not validated). Does not modify output files.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--warning" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Drop Failed Validations</div>
+                    <p>When enabled with <strong>Deep Validate</strong>, discard carved files that fail structure validation. Reduces output size by removing false positives and truncated files.</p>
+                    <p><strong>Warning:</strong> May discard partially recoverable files. Use only when you need high-confidence results and can afford to lose borderline carves.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Dry Run</div>
+                    <p>Scan and report findings without writing any carved files to disk. Outputs manifest JSON with offsets, sizes, and hashes, but no actual file recovery.</p>
+                    <p><strong>Use case:</strong> Quick assessment of recoverable content, estimate output size, or verify signatures match before full recovery.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Export CSV</div>
+                    <p>Write findings as CSV spreadsheet in addition to JSON manifest. Columns: type, extension, offset, size, SHA-256, validated, confidence, path.</p>
+                    <p><strong>Use case:</strong> Import into Excel, Splunk, or other tools for filtering, sorting, and correlation with other evidence.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">HTML Report</div>
+                    <p>Generate browsable HTML report with summary statistics, file table, and image gallery (for recovered JPEG/PNG/GIF/BMP files).</p>
+                    <p><strong>Use case:</strong> Shareable reports for non-technical stakeholders, quick visual review of recovered images, case documentation.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">Export Timeline</div>
+                    <p>Write sorted timeline of recovered file timestamps (MACB: Modified, Accessed, Changed, Born). Output as CSV or JSONL depending on extension.</p>
+                    <p><strong>Use case:</strong> Incident timeline reconstruction, correlation with other forensic artifacts (prefetch, shellbags, event logs), bodyfile for Sleuth Kit mactime.</p>
+                </div>
+
+                <div class="md-grid">
+                    <div>
+                        <div class="md-form">
+                            <label for="offset">Offset (start position)</label>
+                            <input type="text" id="offset" placeholder="0 (supports K/M/G)">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-form">
+                            <label for="length">Length (bytes to scan)</label>
+                            <input type="text" id="length" placeholder="0 = to end">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-form">
+                            <label for="align">Alignment</label>
+                            <input type="number" id="align" value="1" min="1">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-form">
+                            <label for="jobs">Parallel Jobs</label>
+                            <input type="number" id="jobs" value="1" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md-grid">
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="validate">
+                        <label for="validate">Deep validate carves</label>
+                    </div>
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="drop-failed">
+                        <label for="drop-failed">Drop failed validations</label>
+                    </div>
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="dry-run">
+                        <label for="dry-run">Dry run (no output)</label>
+                    </div>
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="csv">
+                        <label for="csv">Export CSV</label>
+                    </div>
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="html">
+                        <label for="html">HTML report</label>
+                    </div>
+                    <div class="md-form-checkbox">
+                        <input type="checkbox" id="timeline">
+                        <label for="timeline">Export timeline</label>
+                    </div>
+                </div>
+
+                <h2 id="step5">5. BitLocker (Optional)</h2>
+
+                <div class="md-admonition md-admonition--warning" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">BitLocker Recovery Key</div>
+                    <p>48-digit Windows BitLocker recovery key (format: <code>XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX</code>). Unlocks BitLocker-encrypted volumes for carving/undelete.</p>
+                    <p><strong>Supported:</strong> AES-XTS-128/256 (Windows 10/11 default), AES-CBC-128/256 (older Windows), Elephant diffuser (Vista/7). Decryption is read-only and in-place — carved files are from decrypted NTFS.</p>
+                </div>
+
+                <div class="md-admonition md-admonition--info" style="margin-bottom: 1rem;">
+                    <div class="md-admonition__title">BitLocker Password</div>
+                    <p>User passphrase for BitLocker-protected volumes. Less common than recovery key for forensics, but supported for completeness.</p>
+                    <p><strong>Note:</strong> Passwords are case-sensitive. May fail if TPM-only protector is used (requires recovery key from AD/printed backup). Credentials are sent to the local server and passed to carvx via its environment — never on the command line.</p>
+                </div>
+
+                <div class="md-grid">
+                    <div>
+                        <div class="md-form">
+                            <label for="bitlocker-key">Recovery Key (48 digits)</label>
+                            <input type="text" id="bitlocker-key" placeholder="471806-123456-...">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="md-form">
+                            <label for="bitlocker-pass">Password</label>
+                            <input type="password" id="bitlocker-pass">
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="step6">6. Run</h2>
+                <button class="md-button md-button--primary" id="run-btn" disabled>Run CarvX</button>
+                <button class="md-button md-button--secondary hidden" id="cancel-btn">Cancel</button>
+                <div id="progress-container" class="hidden" style="margin-top: 1rem;">
+                    <div class="md-progress">
+                        <div class="md-progress__fill" style="width: 0%"></div>
+                    </div>
+                    <p id="status-text" style="font-size: 0.85rem; color: var(--md-default-fg-color--light);"></p>
+                </div>
+
+                <div id="results-container" class="hidden" style="margin-top: 1.5rem;">
+                    <div id="status-message" class="md-status"></div>
+                    <div id="output" class="md-output hidden"></div>
+                    <div id="results-actions" class="hidden" style="margin-top: 1rem;">
+                        <a id="view-results-btn" class="md-button md-button--primary" target="_blank">View Results</a>
+                        <a id="download-manifest-btn" class="md-button md-button--secondary">Download Manifest</a>
+                        <a id="download-all-btn" class="md-button md-button--secondary">Download All (ZIP)</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentJobId = '{{ job_id }}';
+        let currentFilename = null;
+        let pollInterval = null;
+
+        // Tab switching
+        document.querySelectorAll('.md-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.md-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.md-tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // Mode selection
+        const modeDescriptions = {
+            'carve': { id: 'mode-description', title: 'Signature Carve' },
+            'ntfs': { id: 'mode-ntfs', title: 'NTFS Undelete' },
+            'ext4': { id: 'mode-ext4', title: 'ext4 Undelete' },
+            'fat': { id: 'mode-fat', title: 'FAT Undelete' },
+            'hfs': { id: 'mode-hfs', title: 'HFS+ Undelete' },
+            'apfs': { id: 'mode-apfs', title: 'APFS Recovery' },
+            'auto': { id: 'mode-auto', title: 'Auto-Detect' }
+        };
+
+        document.querySelectorAll('.md-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.md-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Hide all descriptions
+                Object.values(modeDescriptions).forEach(desc => {
+                    const el = document.getElementById(desc.id);
+                    if (el) el.classList.add('hidden');
+                });
+                
+                // Show selected description
+                const selected = modeDescriptions[btn.dataset.mode];
+                const descEl = document.getElementById(selected.id);
+                if (descEl) {
+                    descEl.classList.remove('hidden');
+                    descEl.querySelector('.md-admonition__title').textContent = selected.title + ' (Selected)';
+                }
+            });
+        });
+
+        // Select all types
+        document.getElementById('select-all-types').addEventListener('change', (e) => {
+            document.querySelectorAll('input[name="type"]').forEach(cb => {
+                cb.checked = e.target.checked;
+            });
+        });
+
+        // File upload
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) uploadFiles(files);
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) uploadFiles(fileInput.files);
+        });
+
+        async function uploadFiles(files) {
+            const formData = new FormData();
+            for (const f of files) formData.append('file', f);
+            formData.append('job_id', currentJobId);
+
+            const fileInfo = document.getElementById('file-info');
+            fileInfo.innerHTML = 'Uploading...';
+            fileInfo.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentFilename = data.filename;
+                    const extra = files.length > 1 ? ` +${files.length - 1} segment(s)` : '';
+                    fileInfo.innerHTML = `<strong>${data.filename}</strong>${extra} (${(data.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileInfo.className = 'md-status md-status--completed';
+                    document.getElementById('run-btn').disabled = false;
+                } else {
+                    fileInfo.innerHTML = `Error: ${data.error}`;
+                    fileInfo.className = 'md-status md-status--failed';
+                }
+            } catch (error) {
+                fileInfo.innerHTML = `Error: ${error.message}`;
+                fileInfo.className = 'md-status md-status--failed';
+            }
+        }
+
+        // Load path
+        document.getElementById('load-path-btn').addEventListener('click', async () => {
+            const filepath = document.getElementById('file-path').value;
+            if (!filepath) return;
+
+            const pathInfo = document.getElementById('path-info');
+            pathInfo.innerHTML = 'Loading...';
+            pathInfo.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/upload/path', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: filepath, job_id: currentJobId })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentFilename = data.filename;
+                    pathInfo.innerHTML = `<strong>${data.filename}</strong> (${(data.size / 1024 / 1024).toFixed(2)} MB)`;
+                    pathInfo.className = 'md-status md-status--completed';
+                    document.getElementById('run-btn').disabled = false;
+                } else {
+                    pathInfo.innerHTML = `Error: ${data.error}`;
+                    pathInfo.className = 'md-status md-status--failed';
+                }
+            } catch (error) {
+                pathInfo.innerHTML = `Error: ${error.message}`;
+                pathInfo.className = 'md-status md-status--failed';
+            }
+        });
+
+        // Run carvx
+        document.getElementById('run-btn').addEventListener('click', async () => {
+            const mode = document.querySelector('.md-mode-btn.active').dataset.mode;
+            const types = Array.from(document.querySelectorAll('input[name="type"]:checked')).map(cb => cb.value);
+            
+            const data = {
+                job_id: currentJobId,
+                mode: mode,
+                types: types,
+                offset: document.getElementById('offset').value,
+                length: document.getElementById('length').value,
+                align: document.getElementById('align').value,
+                jobs: parseInt(document.getElementById('jobs').value) || 1,
+                validate: document.getElementById('validate').checked,
+                drop_failed: document.getElementById('drop-failed').checked,
+                dry_run: document.getElementById('dry-run').checked,
+                csv: document.getElementById('csv').checked,
+                html: document.getElementById('html').checked,
+                timeline: document.getElementById('timeline').checked,
+            };
+
+            const bitlockerKey = document.getElementById('bitlocker-key').value;
+            const bitlockerPass = document.getElementById('bitlocker-pass').value;
+            if (bitlockerKey) data.bitlocker_recovery_key = bitlockerKey;
+            if (bitlockerPass) data.bitlocker_password = bitlockerPass;
+
+            const runBtn = document.getElementById('run-btn');
+            runBtn.disabled = true;
+            runBtn.textContent = 'Running...';
+
+            const progressContainer = document.getElementById('progress-container');
+            progressContainer.classList.remove('hidden');
+            document.querySelector('.md-progress__fill').style.width = '0%';
+            document.getElementById('results-container').classList.add('hidden');
+
+            try {
+                const response = await fetch('/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    pollJobStatus(result.job_id);
+                } else {
+                    alert('Error: ' + result.error);
+                    runBtn.disabled = false;
+                    runBtn.textContent = 'Run CarvX';
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                runBtn.disabled = false;
+                runBtn.textContent = 'Run CarvX';
+            }
+        });
+
+        const cancelBtn = document.getElementById('cancel-btn');
+        cancelBtn.addEventListener('click', async () => {
+            cancelBtn.disabled = true;
+            try { await fetch(`/cancel/${currentJobId}`, { method: 'POST' }); }
+            catch (e) { console.error(e); }
+        });
+
+        function fmtEta(s) {
+            if (s == null) return '';
+            const m = Math.floor(s / 60);
+            return m ? `ETA ${m}m ${Math.round(s % 60)}s` : `ETA ${Math.round(s)}s`;
+        }
+
+        function pollJobStatus(jobId) {
+            cancelBtn.classList.remove('hidden');
+            cancelBtn.disabled = false;
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/status/${jobId}`);
+                    const data = await response.json();
+
+                    const statusText = document.getElementById('status-text');
+                    const fill = document.querySelector('.md-progress__fill');
+                    const p = data.progress;
+                    if (p && p.percent != null) {
+                        fill.style.width = `${p.percent}%`;
+                        statusText.textContent =
+                            `${p.percent.toFixed(1)}%  —  ` +
+                            `${(p.done / 1048576).toFixed(0)} / ${(p.total / 1048576).toFixed(0)} MiB` +
+                            (p.rate_mibs ? `  @ ${p.rate_mibs} MiB/s` : '') +
+                            `  —  ${data.carved || 0} carved  ${fmtEta(p.eta_s)}`;
+                    } else {
+                        statusText.textContent = `Status: ${data.status}` +
+                            (data.carved ? ` — ${data.carved} recovered` : '');
+                    }
+
+                    if (['completed', 'failed', 'error', 'canceled', 'timeout'].includes(data.status)) {
+                        clearInterval(pollInterval);
+                        cancelBtn.classList.add('hidden');
+                        showResults(data);
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 1000);
+        }
+
+        function showResults(data) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.classList.remove('hidden');
+            
+            const statusMessage = document.getElementById('status-message');
+            const output = document.getElementById('output');
+            const resultsActions = document.getElementById('results-actions');
+            
+            if (data.status === 'completed') {
+                statusMessage.className = 'md-status md-status--completed';
+                statusMessage.innerHTML = `<strong>Completed:</strong> ${data.carved || 0} file(s) recovered.`;
+                resultsActions.classList.remove('hidden');
+
+                document.getElementById('view-results-btn').href = `/results/${data.job_id}`;
+                document.getElementById('download-manifest-btn').href = `/download-manifest/${data.job_id}`;
+                document.getElementById('download-all-btn').href = `/download-all/${data.job_id}`;
+            } else if (data.status === 'canceled') {
+                statusMessage.className = 'md-status md-status--running';
+                statusMessage.innerHTML = '<strong>Canceled.</strong> Partial results (if any) kept.';
+                resultsActions.classList.remove('hidden');
+                document.getElementById('view-results-btn').href = `/results/${data.job_id}`;
+                document.getElementById('download-manifest-btn').href = `/download-manifest/${data.job_id}`;
+                document.getElementById('download-all-btn').href = `/download-all/${data.job_id}`;
+            } else {
+                statusMessage.className = 'md-status md-status--failed';
+                statusMessage.innerHTML = `<strong>Failed:</strong> ${(data.error || 'Unknown error').split('\n').slice(-5).join('<br>')}`;
+            }
+            
+            const runBtn = document.getElementById('run-btn');
+            runBtn.disabled = false;
+            runBtn.textContent = 'Run CarvX';
+            
+            output.textContent = (data.output || '') + (data.error || '');
+            output.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarvX Results - {{ job_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Mono:300,400,500,700">
+    <style>
+        :root {
+            --md-primary-fg-color: #3f51b5;
+            --md-primary-fg-color--light: #5c6bc0;
+            --md-primary-fg-color--dark: #303f9f;
+            --md-accent-fg-color: #3949ab;
+            --md-default-bg-color: #ffffff;
+            --md-default-fg-color: #000000;
+            --md-default-fg-color--light: #000000b3;
+            --md-default-fg-color--lightest: #0000008a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--md-default-fg-color);
+            background: var(--md-default-bg-color);
+        }
+
+        .header {
+            background: var(--md-primary-fg-color);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--md-default-fg-color--lightest);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--md-primary-fg-color);
+            border-bottom: 2px solid var(--md-primary-fg-color--light);
+            padding-bottom: 0.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--md-primary-fg-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--md-primary-fg-color--dark);
+        }
+
+        .btn-secondary {
+            background: var(--md-default-fg-color--lightest);
+            color: var(--md-default-fg-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--md-default-fg-color--light);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-item {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .summary-item .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--md-primary-fg-color);
+        }
+
+        .summary-item .label {
+            font-size: 0.9rem;
+            color: var(--md-default-fg-color--light);
+            margin-top: 0.25rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--md-default-fg-color--lightest);
+        }
+
+        th {
+            background: #f5f5f5;
+            font-weight: 500;
+            color: var(--md-default-fg-color--light);
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            border-radius: 3px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .badge-verified { background: #e8f5e9; color: #2e7d32; }
+        .badge-high { background: #e3f2fd; color: #1565c0; }
+        .badge-low { background: #fff3e0; color: #ef6c00; }
+        .badge-failed { background: #ffebee; color: #c62828; }
+
+        .confidence-verified { color: #2e7d32; font-weight: 600; }
+        .confidence-high { color: #1565c0; font-weight: 600; }
+        .confidence-low { color: #ef6c00; font-weight: 600; }
+        .confidence-failed { color: #c62828; font-weight: 600; }
+
+        .file-path {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.85em;
+            color: var(--md-default-fg-color--light);
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: var(--md-primary-fg-color);
+            color: white;
+            border-color: var(--md-primary-fg-color);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .page-btn.active {
+            background: var(--md-primary-fg-color);
+            color: white;
+            border-color: var(--md-primary-fg-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .metadata-table {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .metadata-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--md-default-fg-color--lightest);
+        }
+
+        .metadata-table td:first-child {
+            font-weight: 500;
+            color: var(--md-primary-fg-color);
+            width: 200px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .gallery-item {
+            border: 1px solid var(--md-default-fg-color--lightest);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .gallery-item-info {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .gallery-item-name {
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .gallery-item-size {
+            color: var(--md-default-fg-color--light);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CarvX Results - Job {{ job_id }}</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Summary</h2>
+            {% if manifest %}
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="value">{{ manifest.files|length if manifest.files else 0 }}</div>
+                    <div class="label">Files Carved</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">{{ (manifest.source_size / 1024 / 1024)|round(2) if manifest.source_size else 0 }} MB</div>
+                    <div class="label">Source Size</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">{{ manifest.duration_s|round(2) if manifest.duration_s else 0 }}s</div>
+                    <div class="label">Duration</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">{{ manifest.types|length if manifest.types else 0 }}</div>
+                    <div class="label">Signature Types</div>
+                </div>
+            </div>
+
+            <table class="metadata-table">
+                <tr>
+                    <td>Source</td>
+                    <td>{{ manifest.source }}</td>
+                </tr>
+                {% if manifest.source_sha256 %}
+                <tr>
+                    <td>Source SHA-256</td>
+                    <td><code style="font-family: 'Roboto Mono', monospace; font-size: 0.85em;">{{ manifest.source_sha256 }}</code></td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Started</td>
+                    <td>{{ manifest.started }}</td>
+                </tr>
+                <tr>
+                    <td>Finished</td>
+                    <td>{{ manifest.finished }}</td>
+                </tr>
+                {% if manifest.offset %}
+                <tr>
+                    <td>Offset</td>
+                    <td>{{ manifest.offset }}</td>
+                </tr>
+                {% endif %}
+                {% if manifest.align %}
+                <tr>
+                    <td>Alignment</td>
+                    <td>{{ manifest.align }}</td>
+                </tr>
+                {% endif %}
+                {% if manifest.jobs %}
+                <tr>
+                    <td>Parallel Jobs</td>
+                    <td>{{ manifest.jobs }}</td>
+                </tr>
+                {% endif %}
+            </table>
+            {% else %}
+            <p>No manifest available.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Carved Files</h2>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search files by name, type, or hash...">
+            </div>
+
+            <div class="filter-buttons" id="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                {% for ext in files|map(attribute='ext')|unique|sort %}
+                <button class="filter-btn" data-filter="{{ ext }}">{{ ext }}</button>
+                {% endfor %}
+            </div>
+
+            {% if total_files > files|length %}
+            <p style="font-size: 0.85rem; color: var(--md-default-fg-color--light);">
+                Showing first {{ files|length }} of {{ total_files }} files.
+                <a href="?limit=2000">Show more</a> or download the ZIP for everything.
+            </p>
+            {% endif %}
+
+            {% if files %}
+            <table id="files-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Filename</th>
+                        <th>Offset</th>
+                        <th>Size</th>
+                        <th>SHA-256</th>
+                        <th>Confidence</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr data-type="{{ file.ext }}">
+                        <td><span class="badge badge-{{ file.confidence if file.confidence in ['verified', 'high', 'low', 'failed'] else 'high' }}">{{ file.ext }}</span></td>
+                        <td class="file-path">{{ file.path }}</td>
+                        <td>{{ '0x%x'|format(file.offset) if file.offset is not none else '—' }}</td>
+                        <td>{{ (file.size / 1024)|round(2) }} KB</td>
+                        <td><code style="font-family: 'Roboto Mono', monospace; font-size: 0.75em;">{{ file.sha256[:16] ~ '…' if file.sha256 else '—' }}</code></td>
+                        <td class="confidence-{{ file.confidence or 'high' }}">{{ (file.confidence or '—')|capitalize }}</td>
+                        <td>
+                            <a href="/download/{{ job_id }}/{{ file.path }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Download</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No files carved.</p>
+            {% endif %}
+        </div>
+
+        {% set image_files = files|selectattr('ext', 'in', ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'ico'])|list %}
+        {% if image_files %}
+        <div class="card">
+            <h2>Image Gallery</h2>
+            <div class="gallery">
+                {% for file in image_files %}
+                <div class="gallery-item">
+                    <a href="/download/{{ job_id }}/{{ file.path }}">
+                        <img src="/view/{{ job_id }}/{{ file.path }}" alt="{{ file.name }}" loading="lazy">
+                    </a>
+                    <div class="gallery-item-info">
+                        <div class="gallery-item-name">{{ file.name }}</div>
+                        <div class="gallery-item-size">{{ (file.size / 1024)|round(2) }} KB</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>Downloads</h2>
+            {% if manifest %}
+            <a href="/download-manifest/{{ job_id }}" class="btn btn-primary">Download Manifest (JSON)</a>
+            {% endif %}
+            <a href="/download-all/{{ job_id }}" class="btn btn-secondary">Download All (ZIP)</a>
+            {% for r in reports %}
+            <a href="/download/{{ job_id }}/{{ r }}" class="btn btn-secondary">{{ r }}</a>
+            {% endfor %}
+            <a href="/" class="btn btn-secondary">New Scan</a>
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('#files-table tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                document.querySelectorAll('#files-table tbody tr').forEach(row => {
+                    if (filter === 'all' || row.dataset.type === filter) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
