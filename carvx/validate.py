@@ -8,7 +8,6 @@ Each validator returns:
 Validators must never raise; they run on attacker-controlled bytes.
 """
 
-import struct
 import zlib
 
 

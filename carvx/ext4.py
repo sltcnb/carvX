@@ -15,7 +15,6 @@ data, no encrypted inodes; sparse/zeroed maps are flagged best-effort.
 
 import hashlib
 import os
-import struct
 import sys
 from dataclasses import dataclass, field
 
@@ -391,7 +390,6 @@ def _locate_volume(reader: Reader, offset: int):
     except ValueError:
         if offset:
             raise
-    from .ntfs import _u32 as n_u32, _u64 as n_u64
     sector0 = reader.pread(0, 512)
     candidates = []
     if sector0[510:512] == b"\x55\xaa":

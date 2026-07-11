@@ -119,8 +119,8 @@ class HfsVolume:
             node = catalog[n * node_size:(n + 1) * node_size]
             if len(node) < 14:
                 continue
-            kind = node[8]                       # -1 leaf, 0 index, 1 header, 2 map
-            # treat leaf nodes (kind 0xFF) AND any node for slack scanning
+            # node[8] is the node kind (-1 leaf, 0 index, 1 header, 2 map);
+            # scan every node regardless so deleted records in slack are seen.
             self._scan_node(node, node_size, names, leaves)
         live_cnids = {r["cnid"] for r in leaves}
 
@@ -187,7 +187,6 @@ class HfsVolume:
         Rather than trust the record-offset array (gone for deleted records),
         scan for catalog data records by their key structure: keyLength(2),
         parentCNID(4), nameLength(2), name(UTF-16BE), then recordType(2)."""
-        n = len(node)
         pos = 14                                 # past node descriptor
         end = node_size
         while pos + 8 < end:

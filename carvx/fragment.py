@@ -59,8 +59,7 @@ def bifragment_carve(window: Window, ext: str, *, block: int = 512,
         # g1: end of fragment 1, cluster-aligned, strictly inside (block, end-block)
         g1 = block
         while g1 < end:
-            max_g2_start = end                       # fragment 2 starts at g1+gap
-            gap = block
+            gap = block                              # fragment 2 starts at g1+gap
             while g1 + gap < end and gap <= max_gap:
                 frag2_start = g1 + gap
                 frag2_len = end - frag2_start

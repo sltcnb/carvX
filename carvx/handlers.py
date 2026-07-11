@@ -13,6 +13,8 @@ from typing import NamedTuple, Optional
 
 from .reader import Window
 
+KB, MB, GB = 1 << 10, 1 << 20, 1 << 30
+
 
 class Carve(NamedTuple):
     size: int
@@ -272,7 +274,7 @@ def carve_zip(w: Window) -> Optional[Carve]:
             clen = _u16le(rec, 20)
             cand = eocd + 22 + clen
             if cand <= w.limit:
-                best, end = eocd, cand
+                end = cand
                 if cd_off + cd_size == eocd:    # central dir lines up: real end
                     validated = True
                     break
@@ -300,9 +302,9 @@ def carve_gzip(w: Window) -> Optional[Carve]:
                 buf = w.read(fed, 1 << 20)
                 if not buf:
                     return None                  # truncated stream
-                data = d.decompress(buf, 1 << 24)
+                d.decompress(buf, 1 << 24)
                 while d.unconsumed_tail:
-                    data = d.decompress(d.unconsumed_tail, 1 << 24)
+                    d.decompress(d.unconsumed_tail, 1 << 24)
                 fed += len(buf)
         except zlib.error:
             return Carve(pos, "gz", True) if pos else None
@@ -587,8 +589,8 @@ def _macho_thin_size(w: Window, base: int) -> Optional[int]:
     if variant is None:
         return None
     bits, endian = variant
-    u32 = (lambda b, o: int.from_bytes(b[o:o + 4], endian))
-    u64 = (lambda b, o: int.from_bytes(b[o:o + 8], endian))
+    def u32(b, o): return int.from_bytes(b[o:o + 4], endian)
+    def u64(b, o): return int.from_bytes(b[o:o + 8], endian)
     ncmds, sizeofcmds = u32(h, 16), u32(h, 20)
     if not (1 <= ncmds <= 4096):
         return None
@@ -765,8 +767,7 @@ def carve_flac(w: Window) -> Optional[Carve]:
         if len(h) < 4:
             return None
         last = bool(h[0] & 0x80)
-        block_len = _u32be(b"\x00" + h, 0) & 0xFFFFFF   # 24-bit length in h[1:4]
-        block_len = (h[1] << 16) | (h[2] << 8) | h[3]
+        block_len = (h[1] << 16) | (h[2] << 8) | h[3]  # 24-bit length in h[1:4]
         pos += 4 + block_len
     # Frames follow; no length field. Scan to next stream / EOF for frame data.
     nxt = w.find(b"fLaC", pos)

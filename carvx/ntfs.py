@@ -286,7 +286,6 @@ def recover_ntfs(source: str, offset: int, out_dir: str,
 
 
 def _recover_stream(vol, info, vpath, stream_name, attr, out_dir, dry_run, min_size):
-    compressed_or_encrypted = attr["flags"] & 0xC001    # compressed/sparse/encrypted bits
     if attr["resident"]:
         data = attr["content"]
         size = len(data)

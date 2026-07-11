@@ -3,12 +3,11 @@
 import hashlib
 import json
 import os
-import re
 import sys
 import time
 from dataclasses import dataclass, field
 
-from .reader import Reader, Window
+from .reader import Window
 from .images import open_source
 from .signatures import Signature
 

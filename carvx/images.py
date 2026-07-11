@@ -16,7 +16,6 @@ right reader (falling back to a plain raw Reader). Supported:
 
 import os
 import re
-import struct
 import sys
 import tempfile
 import zlib
@@ -437,7 +436,6 @@ class EwfReader:
                     break
                 stype = desc[:16].split(b"\x00", 1)[0]
                 next_off = _u64le(desc, 16)
-                size = _u64le(desc, 24)
                 data_off = offset + 76
                 if stype == b"volume" or stype == b"disk":
                     vol = os.pread(fd, 1052, data_off)

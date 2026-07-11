@@ -246,7 +246,6 @@ class ApfsContainer:
         if base + 4 > len(blk):
             return None
         num = _u16(blk, base)
-        used = _u16(blk, base + 2)
         hdr = base + 4
         data = hdr + num * 4
         if data > len(blk):
