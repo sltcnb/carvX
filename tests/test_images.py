@@ -14,8 +14,7 @@ import zlib
 import pytest
 
 import builders
-from carvx.images import (open_source, SplitRawReader, Qcow2Reader, VmdkReader,
-                          EwfReader)
+from carvx.images import (open_source, SplitRawReader, Qcow2Reader, EwfReader)
 from carvx.reader import Reader
 
 QEMU = shutil.which("qemu-img") or (
@@ -164,7 +163,6 @@ def _build_uncompressed_e01(path, payload, chunk_sectors=2, bps=512):
 
 
 def test_ewf_minimal_uncompressed(tmp_path):
-    import hashlib
     payload = bytes(range(256)) * 40 + builders.make_png()   # ~10 KiB
     e01 = tmp_path / "img.E01"
     _build_uncompressed_e01(str(e01), payload)

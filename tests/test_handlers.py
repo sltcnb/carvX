@@ -8,7 +8,7 @@ import pytest
 
 import builders
 from carvx import handlers
-from carvx.reader import Reader, Window
+from carvx.reader import Window
 from carvx.signatures import BY_NAME
 
 

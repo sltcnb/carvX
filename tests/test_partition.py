@@ -2,7 +2,6 @@
 
 import struct
 
-import pytest
 
 from carvx.partition import parse, detect_fs, FS_TO_MODE
 from carvx.reader import Reader

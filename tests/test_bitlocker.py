@@ -6,9 +6,7 @@ cipher, plus the CLI/env integration. STRETCH_COUNT is patched down so the
 key-stretch does not take seconds per test.
 """
 
-import json
 import os
-import struct
 
 import pytest
 

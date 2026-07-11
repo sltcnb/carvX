@@ -1,6 +1,5 @@
 """Reader and Window behavior."""
 
-import os
 
 import pytest
 

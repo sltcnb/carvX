@@ -1,15 +1,12 @@
 """Tests for grep, custom signatures, timeline + HTML report."""
 
 import json
-import os
 
 import pytest
 
-import builders
 from carvx import customsig, grep, report
 from carvx.carver import Carver, Options
 from carvx.reader import Reader
-from carvx.signatures import SIGNATURES
 
 
 # ---------------------------------------------------------------- grep

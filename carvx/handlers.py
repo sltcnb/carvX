@@ -261,7 +261,6 @@ _ZIP_HINTS = [
 
 def carve_zip(w: Window) -> Optional[Carve]:
     pos = 0
-    best = -1
     end = -1
     validated = False
     while True:

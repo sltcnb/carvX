@@ -10,12 +10,11 @@ import os
 import struct
 import zlib
 
-import pytest
 
 from carvx.carver import Carver, Options
 from carvx.fragment import bifragment_carve
 from carvx.reader import Reader, Window
-from carvx.signatures import SIGNATURES, BY_NAME
+from carvx.signatures import BY_NAME
 
 
 def big_png(seed=0):

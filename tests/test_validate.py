@@ -1,6 +1,5 @@
 """Deep validation + blank-skip tests."""
 
-import os
 
 import builders
 from carvx import validate
