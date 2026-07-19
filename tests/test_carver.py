@@ -153,7 +153,8 @@ def test_parallel_matches_serial(image, tmp_path):
     opts = Options(out_dir=str(tmp_path / "p"), quiet=True,
                    chunk_size=1 << 20)         # small chunks: force many ranges
     parallel, _ = run_parallel(path, list(SIGNATURES), opts, jobs=4)
-    key = lambda rs: sorted((r.offset, r.size, r.sha256) for r in rs)
+    def key(rs):
+        return sorted((r.offset, r.size, r.sha256) for r in rs)
     assert key(serial) == key(parallel)
 
 
