@@ -57,6 +57,8 @@ def search(reader, patterns, start=0, length=0, ignore_case=False,
                 hits.append(h)
                 if on_hit:
                     on_hit(h)
+                if max_hits and len(hits) >= max_hits:
+                    return hits
             if u16 is not None:
                 for m in u16.finditer(buf):
                     if m.start() >= limit:
@@ -66,8 +68,8 @@ def search(reader, patterns, start=0, length=0, ignore_case=False,
                     hits.append(h)
                     if on_hit:
                         on_hit(h)
-        if max_hits and len(hits) >= max_hits:
-            return hits[:max_hits]
+                    if max_hits and len(hits) >= max_hits:
+                        return hits
         pos += limit
     return hits
 
