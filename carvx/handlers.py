@@ -678,8 +678,15 @@ def carve_ole(w: Window) -> Optional[Carve]:
             fat_sectors.append(v)
     dif_sect = _u32le(h, 68)
     dif_count = _u32le(h, 72)
+    # dif_count comes from the (untrusted) header; also bound the walk by the
+    # number of sectors actually available and reject cycles so a crafted DIFAT
+    # chain can't spin the loop billions of times.
+    max_hops = min(dif_count + 4, (w.limit // sector) + 1)
+    seen = set()
     hops = 0
-    while dif_sect != 0xFFFFFFFE and dif_sect != _FREESECT and hops < dif_count + 4:
+    while (dif_sect not in (0xFFFFFFFE, _FREESECT) and hops < max_hops
+           and dif_sect not in seen):
+        seen.add(dif_sect)
         blk = w.read((dif_sect + 1) * sector, sector)
         if len(blk) < sector:
             return fallback()
